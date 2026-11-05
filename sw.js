@@ -1,0 +1,7 @@
+const CACHE='europe-journal-static-v7';
+const ASSETS=['./','./index.html','./style.css','./js/app.js','./js/data.js','./js/storage.js','./js/details.js','./js/images.js','./js/presentation.js','./js/attachments.js','./js/input-values.js','./js/embed.js','./js/schedule.js','./js/final-utils.js','./js/vendor/jszip.min.js','./manifest.webmanifest','./icons/icon.svg','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('europe-journal-static-')&&key!==CACHE)await caches.delete(key);await self.clients.claim();})()));
+self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;const allowed=ASSETS.some(path=>new URL(path,self.registration.scope).pathname===url.pathname);if(!allowed&&event.request.mode!=='navigate')return;event.respondWith((async()=>{const cache=await caches.open(CACHE);const cached=await cache.match(event.request,{ignoreSearch:true});if(cached)return cached;if(event.request.mode==='navigate')return (await cache.match('./index.html'))||fetch(event.request);return fetch(event.request);})());});
+
+self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
