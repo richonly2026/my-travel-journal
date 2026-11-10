@@ -1,12 +1,13 @@
 import {dates} from './trip-calendar.js';
 export const escapeHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const sensitive=s=>/@|\b(?:\+?\d[\d ().-]{7,}\d)\b/.test(s);
-export function publicEvent(event){
- if(!event||!event.title?.trim())return null;
- const value={title:String(event.title).trim().slice(0,200),date:String(event.date||''),start:String(event.start||''),end:String(event.end||''),city:String(event.city||'').slice(0,100),category:String(event.category||'기타').slice(0,50)};
- if([value.title,value.city,value.category].some(sensitive))return null;
- if(!/^\d{4}-\d{2}-\d{2}$/.test(value.date)||[value.start,value.end].some(t=>t&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)))return null;
- return value;
+const sensitive=s=>/@|\b(?:\+?\d[\d ().-]{7,}\d)\b|(?:예약번호|비밀번호|카드번호|여권번호|booking\s*(?:ref|number)|password)/i.test(s);
+export function exclusionReason(event){
+ if(!event?.title?.trim())return '장소 이름이 없습니다';
+ if(!dates.includes(event.date))return '여행 기간 밖 또는 날짜 미정';
+ if([event.title,event.city,event.category].some(s=>sensitive(String(s||''))))return '이메일·연락처·예약/인증 정보 의심';
+ if([event.start,event.end].some(t=>t&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)))return '시간 형식 확인 필요';
+ if(String(event.title).length>200||String(event.city||'').length>100||String(event.category||'').length>50)return '공개 텍스트 길이 확인 필요';
+ return '';
 }
 export function publicEvent(event){if(exclusionReason(event))return null;return {title:event.title.trim(),date:event.date,start:String(event.start||''),end:String(event.end||''),city:String(event.city||''),category:String(event.category||'기타')};}
 export function newToken(){return Array.from(crypto.getRandomValues(new Uint8Array(32)),n=>n.toString(16).padStart(2,'0')).join('');}
