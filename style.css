@@ -19,3 +19,8 @@
 #sync-status{overflow-wrap:anywhere;margin:4px 0;font-size:12px}
 /* Settings has its own actions; flex layout must respect the hidden attribute. */
 #form-actions[hidden]{display:none}
+#share-manager{width:min(720px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px;border:1px solid #ddd}
+#share-manager::backdrop{background:#0006}.share-choices label{display:block;padding:10px 0;overflow-wrap:anywhere}
+#share-manager input[readonly]{width:100%;box-sizing:border-box;font-size:12px}#share-manager button{min-height:44px}
+.shared-event{border-top:1px solid #ddd;padding:20px 0;overflow-wrap:anywhere}.shared-event h3{font-size:24px;margin:12px 0}
+.share-time{font-family:Georgia,serif;font-size:22px}.share-page main{max-width:900px;padding-bottom:40px}.share-page .actions{flex-wrap:wrap}

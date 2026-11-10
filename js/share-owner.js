@@ -1,0 +1,18 @@
+import {loadSharing,publishSharing,disableSharing} from './share-service.js';
+import {SHARE_LIMIT,escapeHTML as esc,publicMarkup} from './share-model.js';
+export async function openShareManager(db,uid){
+ let dialog=document.querySelector('#share-manager');if(!dialog){dialog=document.createElement('dialog');dialog.id='share-manager';document.body.append(dialog);}
+ dialog.innerHTML='<div class="sheet-head"><h2>여행 일정 공유</h2><button type="button" data-close aria-label="닫기">×</button></div><div data-share-content>불러오는 중…</div><p data-share-error role="status"></p>';dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.showModal();
+ const content=dialog.querySelector('[data-share-content]'),error=dialog.querySelector('[data-share-error]');let loaded;
+ const link=token=>{const url=new URL('share.html',location.href);url.hash=token;return url.href;};
+ async function refresh(){error.textContent='';loaded=await loadSharing(db,uid);const c=loaded.config;content.innerHTML=`<p class="notice">선택한 일정의 아래 공개 정보와 이후 수정 내용이 링크를 가진 누구에게나 표시됩니다. 제목·도시에 개인정보를 입력하지 마세요. 예약·메모·첨부 원본은 제외합니다.</p><p>클라우드에 동기화가 완료되고 날짜가 있는 일정만 선택할 수 있습니다. 최대 ${SHARE_LIMIT}개.</p>${c?.active?`<label>현재 공유 링크<input readonly data-share-link value="${esc(link(c.token))}"></label><button type="button" data-copy-share>링크 복사</button><button type="button" data-disable-share>공유 중단</button>`:'<p>현재 공유 중이 아닙니다.</p>'}<div class="share-choices">${loaded.events.map(e=>`<label><input type="checkbox" data-share-id="${esc(e.id)}" ${c?.selected.includes(e.id)?'checked':''} ${e.value?'':'disabled'}> ${esc(e.value?`${e.value.date} · ${e.value.title}`:'날짜 미정 또는 개인정보 의심 텍스트 — 공개 제외')}</label>`).join('')}</div><button type="button" data-preview-share>공개 내용 미리보기</button><button type="button" data-reload-share>다시 불러오기</button><div data-share-preview></div>`;}
+ dialog.onclick=async e=>{const b=e.target.closest('button');if(!b||b.hasAttribute('data-close'))return;b.disabled=true;error.textContent='';try{
+ if(b.hasAttribute('data-reload-share'))await refresh();
+ if(b.hasAttribute('data-copy-share')){await navigator.clipboard.writeText(link(loaded.config.token));error.textContent='공유 링크를 복사했습니다.';}
+ if(b.hasAttribute('data-disable-share')){if(confirm('공유를 중단할까요? 기존 링크의 조회가 차단됩니다.')){await disableSharing(db,uid,loaded.config.revision);await refresh();error.textContent='공유를 중단했습니다.';}}
+ if(b.hasAttribute('data-preview-share')){const ids=[...dialog.querySelectorAll('[data-share-id]:checked:not(:disabled)')].map(n=>n.dataset.shareId);if(!ids.length||ids.length>SHARE_LIMIT)throw Error(`1~${SHARE_LIMIT}개를 선택해 주세요.`);dialog.querySelector('[data-share-preview]').innerHTML=`<h3>실제 공개될 내용</h3>${publicMarkup(ids.map(id=>loaded.events.find(e=>e.id===id).value))}<p>지도·길찾기는 위 장소명과 도시로 생성됩니다. 이후 이 필드의 수정도 자동 공개됩니다.</p><button type="button" data-publish-share>확인 후 공유 ${loaded.config?.active?'변경':'시작'}</button>${loaded.config?.active?'<button type="button" data-rotate-share>기존 링크 폐기 후 재발급</button>':''}`;dialog.previewIDs=ids;}
+ if(b.hasAttribute('data-publish-share')||b.hasAttribute('data-rotate-share')){if(!confirm('미리보기 내용을 공개할까요? 링크를 가진 사람은 로그인 없이 볼 수 있습니다.'))return;await publishSharing(db,uid,loaded,dialog.previewIDs,b.hasAttribute('data-rotate-share'));await refresh();error.textContent='공유 설정을 저장했습니다.';}
+ }catch(err){error.textContent=err.code==='permission-denied'?'공유 보안 규칙이 필요합니다. Firebase 콘솔에 firestore.sharing.rules를 게시한 뒤 다시 시도해 주세요.':err.message;}finally{b.disabled=false;}};
+ dialog.onchange=()=>{dialog.querySelector('[data-share-preview]').innerHTML='';dialog.previewIDs=null;};
+ try{await refresh();}catch(e){content.textContent='공유 정보를 불러오지 못했습니다. 공유 보안 규칙 게시와 네트워크를 확인해 주세요.';error.textContent=e.code||e.message;}
+}
