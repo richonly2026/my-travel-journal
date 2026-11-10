@@ -1,3 +1,4 @@
+import {currentJournal,managedWrite} from './sync-storage.js';
 import {googleRouteURL} from './final-utils.js';
 import {validEmbedURL} from './embed.js';
 import {defaults,dates,cities,groups} from './data.js';
@@ -39,5 +40,5 @@ export function validate(data){
  for(const c of data.checks)if(!validDate(c.date))throw Error('체크리스트 날짜 오류');
  return data;
 }
-export function read(){const raw=localStorage.getItem(KEY);return raw?validate(JSON.parse(raw)):defaults();}
-export function write(data){validate(data);localStorage.setItem(KEY,JSON.stringify(data));}
+export function read(){const journal=currentJournal();if(journal)return validate(journal.data);const raw=localStorage.getItem(KEY);return raw?validate(JSON.parse(raw)):defaults();}
+export function write(data,before,bulk=false){validate(data);const managed=managedWrite(data,before,bulk);if(managed)return managed;localStorage.setItem(KEY,JSON.stringify(data));return data;}
