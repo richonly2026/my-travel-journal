@@ -1,6 +1,7 @@
+import {installSafeUpdates} from './pwa-update.js';
 import {detailHTML,resolveDisplayEvent} from './event-content.js';
 import {navigation,homeHero,eventStart,bookingHeading,checkLabel} from './ui-components.js';
-import {initializeSync,mountSyncSettings} from './sync.js';
+import {initializeSync,mountSyncSettings,syncUpdateBlocked} from './sync.js';
 import {detailedMemo,timeConflict,googleRouteURL,bookingMatches,embedKind} from './final-utils.js';
 import {extractEmbed,validEmbedURL} from './embed.js';
 import {reorder,transfer} from './schedule.js';
@@ -126,7 +127,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
 });
 
 render();status();if(blocked)toast('저장 데이터 오류: 설정에서 원본을 백업해 주세요.');
-if('serviceWorker'in navigator){let applyingUpdate=false;function offerUpdate(reg){if(!reg.waiting)return;let banner=$('#app-update');if(!banner){banner=document.createElement('aside');banner.id='app-update';banner.innerHTML='<span>새 버전이 준비되었습니다.</span><button type="button">업데이트 적용</button>';document.body.append(banner);}banner.querySelector('button').onclick=()=>{if($('#editor').open&&!confirm('저장하지 않은 편집을 닫고 업데이트할까요?'))return;applyingUpdate=true;reg.waiting?.postMessage({type:'SKIP_WAITING'});};}navigator.serviceWorker.addEventListener('controllerchange',()=>{if(applyingUpdate)location.reload();});navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(async reg=>{await navigator.serviceWorker.ready;toast('오프라인 사용 준비가 완료되었습니다');offerUpdate(reg);reg.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{});});reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)offerUpdate(reg);});});}).catch(()=>toast('오프라인 준비 실패 · 온라인 상태에서 다시 열어 주세요'));}
+installSafeUpdates(syncUpdateBlocked);
 
 initializeSync(()=>{if(!$('#editor').open){try{state=read();render();status();}catch{blocked=true;status();}}});
 $('#editor').addEventListener('close',()=>{try{state=read();render();status();}catch{blocked=true;status();}});
