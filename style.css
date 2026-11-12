@@ -80,3 +80,12 @@
 .image-ratio-preview{max-width:240px;margin:10px 0}.image-ratio-preview img{display:block;width:auto;max-width:100%;max-height:200px}
 .image-ratio-preview:not([data-ratio="original"]){aspect-ratio:var(--image-ratio);overflow:hidden}.image-ratio-preview:not([data-ratio="original"]) img{width:100%;height:100%;max-height:none;object-fit:cover}
 @media(max-width:600px){.route-leg{gap:8px}.event-actions{margin-right:0}.event-actions a,.event-actions button{font-size:11px}.inline-task{width:100%}}
+
+/* v18: each route segment owns its places, line and compact swatch. */
+.segment-card{border:1px solid var(--line);border-left:3px solid var(--leg-color,#939ba3);padding:16px;margin:14px 0;min-width:0;background:#fff}
+.segment-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;font-size:13px}.segment-tools{display:flex}.segment-tools button{width:44px;padding:4px;font-size:18px}
+.segment-places{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);gap:10px;align-items:center}.segment-arrow{color:#999;padding-top:20px;text-align:center}.segment-endpoint{min-width:0;font-size:13px}.segment-endpoint strong{display:block;margin-top:8px;padding:12px 0;overflow-wrap:anywhere;font-weight:500}
+.segment-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;margin-top:16px}.segment-swatch{display:grid;grid-template-columns:44px auto;align-items:center;font-size:12px;gap:5px}.segment-swatch input[type=color]{width:44px;height:44px;padding:8px;border:1px solid var(--line);background:white;grid-column:1}.segment-swatch small{font-size:10px;color:#777}
+#form-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}#form-actions #form-error{grid-column:1/-1;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}#form-error:empty{display:none}#form-actions [type=submit]{grid-column:2;justify-self:end}#form-actions #delete{justify-self:start}
+#fields [aria-invalid=true]{border:2px solid #a51c38;background:#fff9fa}
+@media(max-width:420px){.segment-card{padding:12px}.segment-places{gap:6px;grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr)}.segment-line{gap:8px}.segment-swatch small{display:none}}
