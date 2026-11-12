@@ -89,3 +89,6 @@
 #form-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}#form-actions #form-error{grid-column:1/-1;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}#form-error:empty{display:none}#form-actions [type=submit]{grid-column:2;justify-self:end}#form-actions #delete{justify-self:start}
 #fields [aria-invalid=true]{border:2px solid #a51c38;background:#fff9fa}
 @media(max-width:420px){.segment-card{padding:12px}.segment-places{gap:6px;grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr)}.segment-line{gap:8px}.segment-swatch small{display:none}}
+
+/* Shared route text wraps as one journey, with the line after the destination. */
+.route-journey{min-width:0;max-width:100%;line-height:1.7;overflow-wrap:anywhere}.route-journey .route-line{font-weight:500}
