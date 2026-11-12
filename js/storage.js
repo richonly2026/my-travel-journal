@@ -1,3 +1,4 @@
+import {validateStops,imageRatios} from './transit.js';
 import {currentJournal,managedWrite} from './sync-storage.js';
 import {googleRouteURL} from './final-utils.js';
 import {validEmbedURL} from './embed.js';
@@ -14,7 +15,7 @@ fields.bookings.push('attachments','iconType','linkedDate','destination','servic
 fields.checks.push('bookingId');
 fields.events.push('sortOrder','reservationId','embedUrl');
 fields.checks.push('eventIds');
-fields.events.push('detailedNote');
+fields.events.push('detailedNote','transitStops','imageRatio');
 fields.bookings.push('imageId','seat','durationMinutes','amount','currency','cost','costStatus');
 const validDate=v=>!v||dates.includes(v);
 const validTime=v=>!v||/^([01]\d|2[0-3]):[0-5]\d$/.test(v);
@@ -25,7 +26,7 @@ export function validate(data){
   const ids=new Set();
   for(const x of data[kind]){
    if(!x||typeof x!=='object'||typeof x.id!=='string'||!x.id||ids.has(x.id)||typeof x.title!=='string'||!x.title.trim())throw Error('항목의 ID 또는 제목이 올바르지 않습니다.');ids.add(x.id);
-   for(const [k,v]of Object.entries(x)){if(!allowed.includes(k))throw Error(`${kind} / ${x.title} / ${k}: 지원하지 않는 입력 항목입니다. 백업 형식을 확인해 주세요.`);if(k==='eventIds'){if(!Array.isArray(v)||v.some(id=>typeof id!=='string'))throw Error('연결 일정 ID 목록 오류');}else if(k==='attachments'){if(!Array.isArray(v)||v.length>200||v.some(a=>!a||typeof a.id!=='string'||!a.id||typeof a.name!=='string'||typeof a.type!=='string'||!['image/jpeg','image/png','image/webp','application/pdf'].includes(a.type)||!Number.isFinite(a.size)||a.size<0||a.size>10485760||typeof a.createdAt!=='string'||(a.caption!==undefined&&typeof a.caption!=='string'))||new Set(v.map(a=>a.id)).size!==v.length)throw Error('첨부파일 목록: 이름·형식·크기를 확인해 주세요.');}else if(k==='tags'){if(!(typeof v==='string'||(Array.isArray(v)&&v.length<=100&&v.every(t=>typeof t==='string'&&t.length<=300))))throw Error('태그 형식 오류');}else if(['fare','durationMinutes','latitude','longitude'].includes(k)&&typeof v==='number'){if(!Number.isFinite(v)||(!['latitude','longitude'].includes(k)&&v<0))throw Error('금액 또는 시간 오류');}else if(k==='done'){if(typeof v!=='boolean')throw Error('체크 상태 오류');}else if((k==='order'||k==='sortOrder')){if(!Number.isFinite(v))throw Error('순서 오류');}else if(typeof v!=='string'||v.length>20000)throw Error('텍스트 형식 오류');}
+   for(const [k,v]of Object.entries(x)){if(!allowed.includes(k))throw Error(`${kind} / ${x.title} / ${k}: 지원하지 않는 입력 항목입니다. 백업 형식을 확인해 주세요.`);if(k==='transitStops'){if(!validateStops(v))throw Error('환승역 이름·노선·색상 또는 개수를 확인해 주세요 (최대 12개).');}else if(k==='imageRatio'){if(!imageRatios.includes(v))throw Error('이미지 비율 오류');}else if(k==='eventIds'){if(!Array.isArray(v)||v.some(id=>typeof id!=='string'))throw Error('연결 일정 ID 목록 오류');}else if(k==='attachments'){if(!Array.isArray(v)||v.length>200||v.some(a=>!a||typeof a.id!=='string'||!a.id||typeof a.name!=='string'||typeof a.type!=='string'||!['image/jpeg','image/png','image/webp','application/pdf'].includes(a.type)||!Number.isFinite(a.size)||a.size<0||a.size>10485760||typeof a.createdAt!=='string'||(a.caption!==undefined&&typeof a.caption!=='string')||(a.ratio!==undefined&&!imageRatios.includes(a.ratio)))||new Set(v.map(a=>a.id)).size!==v.length)throw Error('첨부파일 목록: 이름·형식·크기를 확인해 주세요.');}else if(k==='tags'){if(!(typeof v==='string'||(Array.isArray(v)&&v.length<=100&&v.every(t=>typeof t==='string'&&t.length<=300))))throw Error('태그 형식 오류');}else if(['fare','durationMinutes','latitude','longitude'].includes(k)&&typeof v==='number'){if(!Number.isFinite(v)||(!['latitude','longitude'].includes(k)&&v<0))throw Error('금액 또는 시간 오류');}else if(k==='done'){if(typeof v!=='boolean')throw Error('체크 상태 오류');}else if((k==='order'||k==='sortOrder')){if(!Number.isFinite(v))throw Error('순서 오류');}else if(typeof v!=='string'||v.length>(k==='detailedNote'?60000:20000))throw Error('텍스트 형식 오류');}
    if(kind==='events'&&(!validDate(x.date)||!validTime(x.start)||!validTime(x.end)))throw Error('날짜 또는 시간 형식 오류');
    if(kind==='bookings'&&(!validDate(x.linkedDate)||!validDate(x.checkin)||!validDate(x.checkout)||(x.checkin&&x.checkout&&x.checkout<x.checkin)))throw Error('체크인·체크아웃 날짜 오류');
    if(kind!=='checks'&&(typeof x.city!=='string'||!x.city.trim()||x.city.length>100))throw Error('도시: 1~100자 도시명을 입력해 주세요.');

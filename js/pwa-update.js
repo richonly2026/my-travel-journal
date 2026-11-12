@@ -2,7 +2,7 @@
 export function installSafeUpdates(syncBlocked){
  if(!('serviceWorker' in navigator))return;
  let registration,changed=false,requested=false,lastInput=Date.now(),hadController=!!navigator.serviceWorker.controller;
- const blocked=()=>document.hidden||Date.now()-lastInput<2000||!!document.querySelector('dialog[open],[aria-busy="true"]')||!!document.activeElement?.matches('input,textarea,select,[contenteditable="true"]')||syncBlocked();
+ const blocked=()=>document.hidden||Date.now()-lastInput<2000||!!document.querySelector('dialog[open],[aria-busy="true"]')||!!document.activeElement?.matches('input,textarea,select,[contenteditable="true"]')||[...document.querySelectorAll('.inline-task-entry:not([hidden]) input')].some(input=>input.value.length>0)||syncBlocked();
  function attempt(){
   if(!changed&&!registration?.waiting)return;
   if(blocked())return;

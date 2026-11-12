@@ -47,3 +47,36 @@
 #share-manager button{min-height:44px}
 #share-manager [role=switch][aria-checked=true]{background:#941638;color:white}
 #share-manager button:focus-visible{outline:2px solid #941638;outline-offset:3px}
+
+#share-manager{width:min(640px,calc(100vw - 32px))}
+.share-compact-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.share-compact-head h2{margin:0;margin-right:auto;font-size:1.25rem}
+.share-compact-head [data-share-state]{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.share-compact-head .share-status{font-size:.8rem;color:#666}
+.share-compact-head .small{font-size:.8rem;padding:6px 10px;background:transparent;color:#8f1838;border:1px solid #ddd}
+#share-manager [data-share-error]:empty{display:none}
+@media(max-width:400px){.share-compact-head{gap:6px}.share-compact-head h2{font-size:1.05rem}.share-compact-head [data-share-state]{gap:6px}}
+
+/* Event editing: compact controls, explicit route colours, natural-size images. */
+.event[data-route-color="true"] .event-body{border-left-color:var(--event-color)}
+.event[data-route-color="true"] .timeline-node,.event[data-route-color="true"] .type-badge,.event[data-route-color="true"] .line-label{color:var(--event-color);border-color:var(--event-color)}
+.event-actions{display:flex;align-items:center;gap:4px;overflow-x:auto;max-width:100%;white-space:nowrap;margin-top:16px;padding:2px 0}
+.event-actions .map-actions{display:contents}
+.event-actions a,.event-actions button{flex:0 0 auto;border:0;background:transparent;padding:8px 6px;font-size:12px;min-height:44px;border-radius:0}
+.event-actions a+ a,.event-actions>button{border-left:1px solid #eee}
+.inline-task{min-width:0}.inline-task-entry{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0}.inline-task-entry[hidden]{display:none}
+.inline-task-entry input{flex:1;min-width:100px}.inline-task-entry p{flex-basis:100%;margin:0;color:#8f1838}.inline-task-entry p:empty{display:none}
+.transit-route{margin:16px 0}.route-leg{display:flex;align-items:center;gap:12px;border-left:3px solid var(--leg-color);padding:10px 12px;background:#f8f9fa;flex-wrap:wrap;overflow-wrap:anywhere}
+.route-line{color:var(--leg-color);font-weight:600}.route-line-input,.transfer-row{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin:12px 0}.route-line-input .field,.transfer-row label{flex:1;min-width:120px}
+.transfer-row{padding:12px;border-left:2px solid #ddd}.transfer-row input[type=color],.route-line-input input[type=color]{width:44px;min-width:44px;height:44px;padding:4px}
+.event .travel-caution{white-space:pre-wrap;color:var(--ink);border-left-color:var(--accent,#8f1838)}.travel-caution>span{color:var(--accent,#8f1838)}
+.event-body>.attachments .image-attachment,.event-body>.legacy-image{width:fit-content;max-width:min(600px,100%);margin-left:0;margin-right:auto}
+.event-body>.attachments .image-attachment .image-frame,.event-body>.legacy-image .image-frame{max-width:100%}
+.event-body>.attachments .image-attachment img,.event-body>.legacy-image .reference-image{width:auto;height:auto;max-width:100%;max-height:480px;object-position:left center;margin:0}
+.event-body>.attachments .image-attachment:not([data-ratio="original"]),.event-body>.legacy-image:not([data-ratio="original"]){width:min(600px,100%,var(--natural-width,600px))}
+[data-ratio="16:9"]{--image-ratio:16/9}[data-ratio="4:3"]{--image-ratio:4/3}[data-ratio="1:1"]{--image-ratio:1/1}
+.event-body>.attachments [data-ratio]:not([data-ratio="original"]) .image-frame,.event-body>.legacy-image:not([data-ratio="original"]) .image-frame{aspect-ratio:var(--image-ratio);overflow:hidden}
+.event-body>.attachments [data-ratio]:not([data-ratio="original"]) .image-frame img,.event-body>.legacy-image:not([data-ratio="original"]) .image-frame img{width:100%;height:100%;max-height:none;object-fit:cover}
+.image-ratio-preview{max-width:240px;margin:10px 0}.image-ratio-preview img{display:block;width:auto;max-width:100%;max-height:200px}
+.image-ratio-preview:not([data-ratio="original"]){aspect-ratio:var(--image-ratio);overflow:hidden}.image-ratio-preview:not([data-ratio="original"]) img{width:100%;height:100%;max-height:none;object-fit:cover}
+@media(max-width:600px){.route-leg{gap:8px}.event-actions{margin-right:0}.event-actions a,.event-actions button{font-size:11px}.inline-task{width:100%}}
