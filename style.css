@@ -95,3 +95,128 @@
 
 /* Itinerary checklist: heading action, followed immediately by its inline draft. */
 .inline-task-heading{display:flex;align-items:center;gap:6px;min-width:0}.linked-checks .inline-task-heading h4{margin:0;font-weight:500}.inline-task-heading [data-inline-open]{font-size:20px;width:44px;height:44px;padding:4px;flex:0 0 44px}.inline-task-compact .inline-task-entry{margin:0 0 12px}.inline-task-heading [aria-expanded=true]{color:var(--accent)}
+
+/* v22: shared mobile layout. Data, rendering and desktop composition stay unchanged. */
+@media (max-width:1100px){
+  :root{--mobile-nav-height:78px;--mobile-bottom:calc(var(--mobile-nav-height) + env(safe-area-inset-bottom,0px))}
+  html{scroll-padding-bottom:calc(var(--mobile-bottom) + 20px)}
+  body{min-width:0}
+  main,.share-page main{min-width:0;padding-bottom:calc(var(--mobile-bottom) + 32px)}
+  #nav{height:var(--mobile-bottom);padding:6px max(8px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom));background:#fff;align-items:stretch}
+  #nav a{min-width:0;min-height:44px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;line-height:1.3}
+  #nav svg{margin:0;flex-shrink:0}
+  #toast{bottom:calc(var(--mobile-bottom) + 12px)}
+  .home-layout>*,.section-heading>div,.booking-header>div,.event-body,.check-row label,.check-row label>span{min-width:0}
+  .dates{width:100%;max-width:100%;min-width:0;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  .date{flex:0 0 86px;min-width:0}
+  .day-content,.city,.section-heading h2,.check-group h3,.check-row label,.notice,.reservation-context{overflow-wrap:anywhere}
+  .booking-header>button,.check-row>button{flex-shrink:0;white-space:nowrap;min-width:44px}
+  .check-row label{overflow-wrap:anywhere}
+  .check-row .meta{display:block}
+  .event-actions{flex-wrap:wrap;overflow:visible;white-space:normal;gap:4px 8px}
+  .event-actions a,.event-actions button{min-width:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+  .event-actions a+ a,.event-actions>button{border-left:0}
+  .media-content,.attachments,.reservation-context,.pdf-attachment{min-width:0;max-width:100%}
+  dialog{max-width:calc(100% - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;scroll-padding-block:16px}
+  dialog input:not([type=checkbox]):not([type=radio]):not([type=color]),dialog textarea,dialog select,.inline-task-entry input,.inline-task-entry select{font-size:16px;min-width:0;max-width:100%;min-height:44px}
+  .inline-task-entry input{padding:10px;border:1px solid #d5d5d5}
+  .inline-task-entry button{min-width:44px}
+  .check-group h3{display:flex;align-items:flex-start;gap:8px;line-height:1.6}
+  .check-row label{padding-block:10px}
+  .check-row input{min-width:20px}
+}
+@media (max-width:600px){
+  .top{padding:18px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-area-inset-left));gap:8px}
+  .brand{font-size:12px;letter-spacing:.1em;min-width:0;overflow-wrap:anywhere}
+  .top #settings{flex-shrink:0;white-space:nowrap}
+  .statusbar{padding:12px 16px;gap:8px;flex-wrap:wrap;line-height:1.6}
+  #save-status,#share-status{overflow-wrap:anywhere;min-width:0}
+  main{padding:20px 16px calc(var(--mobile-bottom) + 32px)}
+  #nav a{flex:1;width:auto;font-size:9px;letter-spacing:0;padding:6px 1px}
+  .page-title{font-size:clamp(35px,10vw,43px);line-height:1.08;overflow-wrap:anywhere}
+  .hero h1{font-size:clamp(64px,20vw,80px)}
+  .hero-bottom{gap:12px;flex-wrap:wrap}
+  .hero-bottom .muted{font-size:12px}
+  .section-heading{gap:10px;flex-wrap:wrap;padding:18px 0 12px}
+  .section-heading h2{font-size:23px;line-height:1.25}
+  .section-heading>div{flex:1 1 150px}
+  .section-heading>.primary{flex:0 0 auto;white-space:nowrap;padding:10px 12px;font-size:14px}
+  .section-heading small{line-height:1.5}
+  .day-row summary{grid-template-columns:100px minmax(0,1fr) 20px}
+  .day-content p{overflow-wrap:anywhere;line-height:1.7}
+  .dates{gap:4px;padding:8px 0}
+  .date{flex-basis:74px;padding:8px 5px}
+  .date small{max-width:100%}
+  .timeline{margin-top:12px}
+  .event{grid-template-columns:42px minmax(0,1fr);gap:12px;padding:22px 0}
+  .event-body{padding-left:17px}
+  .timeline-node{width:26px;height:26px;left:-14px}
+  .event .timeline-node .type-icon{width:16px;height:16px}
+  .event .time{font-size:15px;padding-top:5px;font-variant-numeric:tabular-nums}
+  .event .time small{font-size:11px;line-height:1.5;margin-top:6px}
+  .event h3{font-size:19px;line-height:1.45}
+  .event p,.booking p{font-size:14px;line-height:1.75}
+  .event-meta,.meta{font-size:12px}
+  .event-kicker{gap:6px;margin-bottom:8px}
+  .type-badge,.transport-badge{font-size:12px}
+  .event-details>div{grid-template-columns:minmax(0,1fr);gap:2px;padding:6px 0}
+  .event-details dt{font-size:12px}
+  .event-details dd{font-size:14px}
+  .quick-facts{font-size:13px;gap:8px 12px}
+  .route-flow{flex-wrap:wrap;padding:12px;font-size:14px}
+  .route-flow span{flex-basis:100px}
+  .route-leg{padding:10px;gap:6px;font-size:14px}
+  .event-actions a,.event-actions button,.actions a,.actions button{min-height:44px;min-width:44px;font-size:12px}
+  .map-actions a{max-width:100%;overflow-wrap:anywhere}
+  .booking{padding:20px 0}
+  .booking-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+  .booking h3{font-size:19px;line-height:1.5;align-items:flex-start;margin:8px 0}
+  .booking h3 .type-icon{margin-top:4px}
+  .booking-header>button{padding:8px;min-width:44px;font-size:13px;white-space:nowrap}
+  .notice{padding:12px 14px;font-size:13px;margin:18px 0}
+  .reservation-context,.linked-booking{padding:12px;margin:16px 0}
+  .reservation-top{flex-wrap:wrap;align-items:center;gap:6px}
+  .reservation-top h4{font-size:14px;line-height:1.6;flex:1 1 130px}
+  .reservation-top button{min-width:44px;white-space:nowrap;padding:8px}
+  .pdf-attachment{padding:12px!important}
+  .pdf-heading strong{font-size:14px;line-height:1.6}
+  .pdf-attachment .attachment-links{gap:6px}
+  .pdf-attachment .attachment-links a{padding:10px 12px;min-width:44px}
+  .attachment-links{overflow-wrap:anywhere}
+  .section-heading:has([data-categories]){display:grid;grid-template-columns:minmax(0,1fr) auto}
+  .section-heading:has([data-categories])>.inline-task{grid-column:1/-1;grid-row:2}
+  .section-heading>[data-categories]{grid-column:1/-1;justify-self:start;white-space:nowrap;font-size:13px;padding:8px 12px;border:1px solid var(--line)}
+  .check-row{gap:8px;align-items:flex-start}
+  .check-row label{gap:10px;min-width:0;font-size:14px;line-height:1.7;align-items:flex-start;min-height:44px}
+  .check-row input{margin:2px 0 0}
+  .check-row>button{padding:10px 6px;min-width:44px;font-size:12px;margin-top:2px}
+  .check-group h3{font-size:14px;margin-bottom:0}
+  .check-row .meta{font-size:12px;line-height:1.6;margin-top:4px}
+  .inline-task-entry select{flex:1 1 130px;width:100%;padding:8px}
+  .inline-task-entry input{flex:1 1 120px;width:0}
+  .inline-task-entry [data-new-category]{font-size:12px;white-space:nowrap}
+  .inline-task-entry [data-inline-save]{flex:0 0 44px}
+  dialog{width:100%;max-width:100%;max-height:calc(100dvh - env(safe-area-inset-top) - 12px);margin:auto 0 0;padding-bottom:env(safe-area-inset-bottom);scroll-padding-bottom:90px}
+  #form,#action-dialog form{padding:16px}
+  .sheet-head{gap:10px;margin-bottom:12px}
+  .sheet-head h2{font-size:20px;overflow-wrap:anywhere;min-width:0}
+  .sheet-head button{flex:0 0 44px}
+  .form-actions{bottom:-16px;padding:12px 0 calc(12px + env(safe-area-inset-bottom));z-index:2;gap:8px}
+  .form-grid{grid-template-columns:minmax(0,1fr)}
+  .field{min-width:0;overflow-wrap:anywhere}
+  .field input,.field select,.field textarea{scroll-margin-block:70px}
+  .segment-card{padding:12px}
+  .segment-places{grid-template-columns:minmax(0,1fr);gap:4px}
+  .segment-arrow{padding:0;text-align:left;line-height:1;transform:rotate(90deg);width:16px}
+  .segment-endpoint strong{margin:0;padding:8px 0}
+  .segment-line{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+  .segment-heading{gap:4px}
+  .segment-tools{flex-shrink:0}
+  .segment-tools button{width:44px;min-width:44px}
+  .segment-swatch{grid-template-columns:44px}
+  .segment-swatch small{display:none}
+  #preview{padding:16px;max-height:calc(100dvh - 12px)}
+  #preview img{max-height:calc(100dvh - 110px);object-fit:contain}
+  #share-manager{max-height:calc(100dvh - 24px);padding:16px}
+  #app-update{gap:8px;padding:8px 12px;font-size:12px}
+}
