@@ -92,3 +92,6 @@
 
 /* Shared route text wraps as one journey, with the line after the destination. */
 .route-journey{min-width:0;max-width:100%;line-height:1.7;overflow-wrap:anywhere}.route-journey .route-line{font-weight:500}
+
+/* Itinerary checklist: heading action, followed immediately by its inline draft. */
+.inline-task-heading{display:flex;align-items:center;gap:6px;min-width:0}.linked-checks .inline-task-heading h4{margin:0;font-weight:500}.inline-task-heading [data-inline-open]{font-size:20px;width:44px;height:44px;padding:4px;flex:0 0 44px}.inline-task-compact .inline-task-entry{margin:0 0 12px}.inline-task-heading [aria-expanded=true]{color:var(--accent)}
