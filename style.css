@@ -220,3 +220,39 @@
   #share-manager{max-height:calc(100dvh - 24px);padding:16px}
   #app-update{gap:8px;padding:8px 12px;font-size:12px}
 }
+
+/* v23: one information structure across phone, tablet and desktop. */
+main,.share-page main{padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
+nav{background:#fff}
+.event-header{display:flex;align-items:flex-start;gap:12px}
+.event-header .event-open{min-width:0;flex:1;cursor:default}
+.event-edit{flex:0 0 auto;white-space:nowrap;font-size:12px;padding:8px;min-width:44px}
+.event{column-gap:26px}
+.event p,.booking .reservation-context p,.event-details dd,.travel-steps,.route-leg{font-size:13px;line-height:1.7}
+.event .detailed-memo p{max-width:72ch;margin:12px 0}
+.event-header .event-meta{display:none}
+.day-route-actions{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:10px;vertical-align:middle}
+.day-route-actions .day-route{margin:0;border:0;padding:8px 6px;font-size:12px;min-width:44px}
+.day-route-actions button{font-size:12px;min-width:44px}
+.day-summary{padding:10px 0;margin:8px 0;font-size:13px}
+.day-summary summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:#666;gap:8px}
+.day-summary summary:before{content:'+'}.day-summary[open] summary:before{content:'−'}
+.day-summary p{white-space:pre-wrap;font-size:13px}
+.reservation-top h4{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.booking-status{font-size:12px;font-weight:400;color:#666;white-space:nowrap}
+@media(max-width:600px){
+ .event{grid-template-columns:42px minmax(0,1fr);column-gap:22px}
+ .event-header{gap:6px;flex-wrap:wrap}
+ .event-header .event-open{flex:1 1 130px}
+ .event-edit{margin-left:auto}
+ .event h3{font-size:18px}
+ .day-route-actions{margin-left:6px}
+ .event-details dd,.event p,.route-leg,.travel-steps{font-size:13px}
+}
+.reference-links{display:flex;flex-wrap:wrap;gap:4px 14px;margin:14px 0}
+.reference-links a{display:inline-flex;align-items:center;min-height:44px;max-width:100%;font-size:13px;color:var(--accent);overflow-wrap:anywhere}
+.reference-editor{border-top:1px solid var(--line);margin-top:18px;padding-top:12px;min-width:0}
+.reference-editor h4{font-size:14px;margin:8px 0}
+.reference-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;align-items:end;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.reference-row button{min-width:44px;white-space:nowrap}
+@media(max-width:600px){.reference-row{grid-template-columns:minmax(0,1fr) auto}.reference-row>.field:first-child{grid-column:1/-1}}

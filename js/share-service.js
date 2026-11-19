@@ -1,3 +1,5 @@
+import {publicDayRoute} from './day-route.js';
+import {dates} from './trip-calendar.js';
 import {maskedTrip,maskedScope,MASK_POLICY} from './share-sanitize.js';
 import {detailCandidates,detailScope,materializeEvents,restoreApprovedCandidates} from './share-details.js';
 import * as sdk from './vendor/firebase.js';
@@ -7,11 +9,11 @@ const sourceRef=(db,uid)=>sdk.doc(db,'users',uid,'sharing','source');
 export async function supportsSharing(db,uid){try{await sdk.getDocFromServer(configRef(db,uid));return true;}catch(e){if(e.code==='permission-denied')return false;throw e;}}
 export async function supportsFullSharing(db,uid){try{await sdk.getDocFromServer(sourceRef(db,uid));return true;}catch(e){if(e.code==='permission-denied')return false;throw e;}}
 // Read every dependency before the caller writes its private record.
-export async function preparePublicUpdate(tx,db,uid,recordId,value,full=false,kind='events'){
+export async function preparePublicUpdate(tx,db,uid,recordId,value,full=false,kind='events',itemId=''){
  const snap=await tx.get(configRef(db,uid));const config=snap.exists()?snap.data():null;
  const source=full?await tx.get(sourceRef(db,uid)):null;
  const legacyIndex=kind==='events'&&config?.version!==2&&config?.active?config.selected.indexOf(recordId):-1;
- return ()=>{if(source?.exists())tx.set(sourceRef(db,uid),{revision:source.data().revision+1});if(legacyIndex>=0)tx.set(sdk.doc(db,'publicTrips',config.token,'items',String(legacyIndex)),publicEvent(value)||{hidden:true});};
+ return ()=>{if(kind==='dayNotes'&&config?.active&&dates.includes(itemId))tx.set(sdk.doc(db,'publicTrips',config.token,'routes',itemId),publicDayRoute(itemId,value)||{date:itemId,url:''});if(source?.exists())tx.set(sourceRef(db,uid),{revision:source.data().revision+1});if(legacyIndex>=0)tx.set(sdk.doc(db,'publicTrips',config.token,'items',String(legacyIndex)),publicEvent(value)||{hidden:true});};
 }
 async function ensureSource(db,uid){await sdk.runTransaction(db,async tx=>{const snap=await tx.get(sourceRef(db,uid));if(!snap.exists())tx.set(sourceRef(db,uid),{revision:0});});}
 export async function loadSharing(db,uid,{legacy=true}={}){
@@ -19,7 +21,7 @@ export async function loadSharing(db,uid,{legacy=true}={}){
  for(let attempt=0;attempt<4;attempt++){
   const before=await sdk.getDocFromServer(sourceRef(db,uid));const config=await sdk.getDocFromServer(configRef(db,uid));
   const records=await sdk.getDocsFromServer(sdk.collection(db,'users',uid,'records'));const after=await sdk.getDocFromServer(sourceRef(db,uid));
-  if(before.data().revision===after.data().revision){const masked=maskedTrip(Object.fromEntries(['events','bookings','checks'].map(kind=>[kind,records.docs.filter(d=>d.data().kind===kind&&!d.data().deleted).map(d=>d.data().payload)])));if(!legacy||config.data()?.sharingPolicy===MASK_POLICY)return {masked,events:[],sourceRevision:after.data().revision,config:config.exists()?config.data():null};const bookings=records.docs.filter(d=>d.data().kind==='bookings'&&!d.data().deleted).map(d=>d.data().payload);const events=await Promise.all(records.docs.filter(d=>d.data().kind==='events'&&!d.data().deleted).map(async d=>({id:d.id,value:publicEvent(d.data().payload),reason:exclusionReason(d.data().payload),title:d.data().payload.title,date:d.data().payload.date,candidates:await detailCandidates(d.id,d.data().payload,bookings)})));await restoreApprovedCandidates(events,config.exists()?config.data():null,async token=>{const saved=await sdk.getDocFromServer(sdk.doc(db,'users',uid,'detailApprovals',token));return saved.exists()?saved.data():null;});return {masked,sourceRevision:after.data().revision,config:config.exists()?config.data():null,...Object.fromEntries(['bookings','checks'].map(kind=>[kind,records.docs.filter(d=>d.data().kind===kind&&!d.data().deleted).map(d=>({id:d.id,value:publicSummary(kind,d.data().payload),title:d.data().payload.title}))])),events};}
+  if(before.data().revision===after.data().revision){const routes=records.docs.filter(d=>d.data().kind==='dayNotes'&&!d.data().deleted).map(d=>publicDayRoute(d.data().itemId,d.data().payload)).filter(Boolean);const masked=maskedTrip(Object.fromEntries(['events','bookings','checks'].map(kind=>[kind,records.docs.filter(d=>d.data().kind===kind&&!d.data().deleted).map(d=>d.data().payload)])));if(!legacy||config.data()?.sharingPolicy===MASK_POLICY)return {routes,masked,events:[],sourceRevision:after.data().revision,config:config.exists()?config.data():null};const bookings=records.docs.filter(d=>d.data().kind==='bookings'&&!d.data().deleted).map(d=>d.data().payload);const events=await Promise.all(records.docs.filter(d=>d.data().kind==='events'&&!d.data().deleted).map(async d=>({id:d.id,value:publicEvent(d.data().payload),reason:exclusionReason(d.data().payload),title:d.data().payload.title,date:d.data().payload.date,candidates:await detailCandidates(d.id,d.data().payload,bookings)})));await restoreApprovedCandidates(events,config.exists()?config.data():null,async token=>{const saved=await sdk.getDocFromServer(sdk.doc(db,'users',uid,'detailApprovals',token));return saved.exists()?saved.data():null;});return {routes,masked,sourceRevision:after.data().revision,config:config.exists()?config.data():null,...Object.fromEntries(['bookings','checks'].map(kind=>[kind,records.docs.filter(d=>d.data().kind===kind&&!d.data().deleted).map(d=>({id:d.id,value:publicSummary(kind,d.data().payload),title:d.data().payload.title}))])),events};}
  }
  throw Error('일정이 동기화 중입니다. 잠시 후 다시 불러와 주세요.');
 }
@@ -47,7 +49,7 @@ export async function publishSharing(db,uid,loaded,scope,rotate=false){
   if((cfg.exists()?cfg.data().revision:0)!==expected)throw Error('다른 기기에서 공유 설정이 바뀌었습니다. 다시 불러와 주세요.');
   if(source.data().revision!==loaded.sourceRevision)throw Error('일정이 변경되었습니다. 잠시 후 다시 시도해 주세요.');
   if(loaded.config?.token&&loaded.config.token!==token)tx.set(sdk.doc(db,'publicTrips',loaded.config.token),loaded.config.version===2?{version:2,active:false,generation:loaded.config.generation}:{active:false,slots:[]});
-  tx.set(configRef(db,uid),next);if(!same)tx.set(sdk.doc(db,'publicTrips',token),{version:2,active:true,generation});
+  for(const date of dates)tx.set(sdk.doc(db,'publicTrips',token,'routes',date),(loaded.routes||[]).find(r=>r.date===date)||{date,url:''});tx.set(configRef(db,uid),next);if(!same)tx.set(sdk.doc(db,'publicTrips',token),{version:2,active:true,generation});
  });return token;
 }
 export async function disableSharing(db,uid,expected){return sdk.runTransaction(db,async tx=>{const ref=configRef(db,uid),snap=await tx.get(ref);if(!snap.exists())return;const old=snap.data();if(old.revision!==expected)throw Error('다른 기기에서 공유 설정이 바뀌었습니다. 다시 불러와 주세요.');tx.set(ref,{...old,active:false,revision:old.revision+1});tx.set(sdk.doc(db,'publicTrips',old.token),old.version===2?{version:2,active:false,generation:old.generation}:{active:false,slots:[]});});}

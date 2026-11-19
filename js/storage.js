@@ -1,3 +1,5 @@
+import {validReferenceLinks} from './reference-links.js';
+import {routeURL} from './day-route.js';
 import {validateStops,imageRatios} from './transit.js';
 import {currentJournal,managedWrite} from './sync-storage.js';
 import {googleRouteURL} from './final-utils.js';
@@ -15,7 +17,7 @@ fields.bookings.push('attachments','iconType','linkedDate','destination','servic
 fields.checks.push('bookingId');
 fields.events.push('sortOrder','reservationId','embedUrl');
 fields.checks.push('eventIds');
-fields.events.push('detailedNote','transitStops','imageRatio');
+fields.events.push('detailedNote','transitStops','imageRatio','referenceLinks');
 fields.bookings.push('imageId','seat','durationMinutes','amount','currency','cost','costStatus');
 fields.checkGroups=['id','title','iconType'];
 const validDate=v=>!v||dates.includes(v);
@@ -28,7 +30,7 @@ export function validate(data){
   const ids=new Set();
   for(const x of data[kind]){
    if(!x||typeof x!=='object'||typeof x.id!=='string'||!x.id||ids.has(x.id)||typeof x.title!=='string'||!x.title.trim())throw Error('항목의 ID 또는 제목이 올바르지 않습니다.');ids.add(x.id);
-   for(const [k,v]of Object.entries(x)){if(!allowed.includes(k))throw Error(`${kind} / ${x.title} / ${k}: 지원하지 않는 입력 항목입니다. 백업 형식을 확인해 주세요.`);if(k==='transitStops'){if(!validateStops(v))throw Error('환승역 이름·노선·색상 또는 개수를 확인해 주세요 (최대 12개).');}else if(k==='imageRatio'){if(!imageRatios.includes(v))throw Error('이미지 비율 오류');}else if(k==='eventIds'){if(!Array.isArray(v)||v.some(id=>typeof id!=='string'))throw Error('연결 일정 ID 목록 오류');}else if(k==='attachments'){if(!Array.isArray(v)||v.length>200||v.some(a=>!a||typeof a.id!=='string'||!a.id||typeof a.name!=='string'||typeof a.type!=='string'||!['image/jpeg','image/png','image/webp','application/pdf'].includes(a.type)||!Number.isFinite(a.size)||a.size<0||a.size>10485760||typeof a.createdAt!=='string'||(a.caption!==undefined&&typeof a.caption!=='string')||(a.ratio!==undefined&&!imageRatios.includes(a.ratio)))||new Set(v.map(a=>a.id)).size!==v.length)throw Error('첨부파일 목록: 이름·형식·크기를 확인해 주세요.');}else if(k==='tags'){if(!(typeof v==='string'||(Array.isArray(v)&&v.length<=100&&v.every(t=>typeof t==='string'&&t.length<=300))))throw Error('태그 형식 오류');}else if(['fare','durationMinutes','latitude','longitude'].includes(k)&&typeof v==='number'){if(!Number.isFinite(v)||(!['latitude','longitude'].includes(k)&&v<0))throw Error('금액 또는 시간 오류');}else if(k==='done'){if(typeof v!=='boolean')throw Error('체크 상태 오류');}else if((k==='order'||k==='sortOrder')){if(!Number.isFinite(v))throw Error('순서 오류');}else if(typeof v!=='string'||v.length>(k==='detailedNote'?60000:20000))throw Error('텍스트 형식 오류');}
+   for(const [k,v]of Object.entries(x)){if(!allowed.includes(k))throw Error(`${kind} / ${x.title} / ${k}: 지원하지 않는 입력 항목입니다. 백업 형식을 확인해 주세요.`);if(k==='referenceLinks'){if(!validReferenceLinks(v))throw Error('참고 링크: HTTPS URL과 표시 이름을 확인해 주세요 (최대 20개).');}else if(k==='transitStops'){if(!validateStops(v))throw Error('환승역 이름·노선·색상 또는 개수를 확인해 주세요 (최대 12개).');}else if(k==='imageRatio'){if(!imageRatios.includes(v))throw Error('이미지 비율 오류');}else if(k==='eventIds'){if(!Array.isArray(v)||v.some(id=>typeof id!=='string'))throw Error('연결 일정 ID 목록 오류');}else if(k==='attachments'){if(!Array.isArray(v)||v.length>200||v.some(a=>!a||typeof a.id!=='string'||!a.id||typeof a.name!=='string'||typeof a.type!=='string'||!['image/jpeg','image/png','image/webp','application/pdf'].includes(a.type)||!Number.isFinite(a.size)||a.size<0||a.size>10485760||typeof a.createdAt!=='string'||(a.caption!==undefined&&typeof a.caption!=='string')||(a.ratio!==undefined&&!imageRatios.includes(a.ratio)))||new Set(v.map(a=>a.id)).size!==v.length)throw Error('첨부파일 목록: 이름·형식·크기를 확인해 주세요.');}else if(k==='tags'){if(!(typeof v==='string'||(Array.isArray(v)&&v.length<=100&&v.every(t=>typeof t==='string'&&t.length<=300))))throw Error('태그 형식 오류');}else if(['fare','durationMinutes','latitude','longitude'].includes(k)&&typeof v==='number'){if(!Number.isFinite(v)||(!['latitude','longitude'].includes(k)&&v<0))throw Error('금액 또는 시간 오류');}else if(k==='done'){if(typeof v!=='boolean')throw Error('체크 상태 오류');}else if((k==='order'||k==='sortOrder')){if(!Number.isFinite(v))throw Error('순서 오류');}else if(typeof v!=='string'||v.length>(k==='detailedNote'?60000:20000))throw Error('텍스트 형식 오류');}
    if(kind==='events'&&(!validDate(x.date)||!validTime(x.start)||!validTime(x.end)))throw Error('날짜 또는 시간 형식 오류');
    if(kind==='bookings'&&(!validDate(x.linkedDate)||!validDate(x.checkin)||!validDate(x.checkout)||(x.checkin&&x.checkout&&x.checkout<x.checkin)))throw Error('체크인·체크아웃 날짜 오류');
    if(!['checks','checkGroups'].includes(kind)&&(typeof x.city!=='string'||!x.city.trim()||x.city.length>100))throw Error('도시: 1~100자 도시명을 입력해 주세요.');
@@ -39,7 +41,7 @@ export function validate(data){
    for(const k of ['map','image','directions','official','streetview','website','placeUrl','mapUrl','directionsUrl','streetViewUrl','websiteUrl','instagramUrl','originStreetViewUrl','destinationStreetViewUrl'])if(x[k]){let u;try{u=new URL(x[k]);}catch{throw Error('URL 형식 오류');}if(u.protocol!=='https:')throw Error('링크는 https 주소를 사용해 주세요.');}
   }
  }
- if(data.dayNotes!==undefined){if(!data.dayNotes||typeof data.dayNotes!=='object'||Array.isArray(data.dayNotes))throw Error('하루 요약 형식 오류');for(const [d,n] of Object.entries(data.dayNotes)){if(!dates.includes(d)||!n||typeof n!=='object'||Array.isArray(n))throw Error('하루 요약 날짜 오류');if(n.routeUrl&&!googleRouteURL(n.routeUrl))throw Error('하루 전체 경로 URL: HTTPS Google Maps 링크를 입력해 주세요.');for(const [k,v] of Object.entries(n))if(!['sunset','returnTime','note','routeUrl'].includes(k)||typeof v!=='string'||v.length>20000||(['sunset','returnTime'].includes(k)&&!validTime(v)))throw Error('하루 요약 값 오류');}}
+ if(data.dayNotes!==undefined){if(!data.dayNotes||typeof data.dayNotes!=='object'||Array.isArray(data.dayNotes))throw Error('하루 요약 형식 오류');for(const [d,n] of Object.entries(data.dayNotes)){if(!dates.includes(d)||!n||typeof n!=='object'||Array.isArray(n))throw Error('하루 요약 날짜 오류');if(n.sharedRouteUrl&&!routeURL(n.sharedRouteUrl))throw Error('공유 경로 URL 형식 오류');if(n.routeUrl&&!googleRouteURL(n.routeUrl))throw Error('하루 전체 경로 URL: HTTPS Google Maps 링크를 입력해 주세요.');for(const [k,v] of Object.entries(n))if(!['sunset','returnTime','note','routeUrl','sharedRouteUrl'].includes(k)||typeof v!=='string'||v.length>20000||(['sunset','returnTime'].includes(k)&&!validTime(v)))throw Error('하루 요약 값 오류');}}
  for(const c of data.checks)if(!validDate(c.date))throw Error('체크리스트 날짜 오류');
  return data;
 }

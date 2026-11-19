@@ -1,0 +1,6 @@
+import {dates} from './trip-calendar.js';
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Routes are explicitly registered for sharing; old summary URLs remain private until saved here.
+export function routeURL(value){try{if(typeof value!=='string'||value.length>2000||/[\s<>]/.test(value))return '';const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password||u.port||u.hash)return '';if(['www.google.com','maps.google.com'].includes(u.hostname)&&/^\/maps(?:\/|$)/.test(u.pathname))return u.href;if(u.hostname==='maps.app.goo.gl'&&/^\/[A-Za-z0-9_-]+$/.test(u.pathname))return u.href;if(u.hostname==='goo.gl'&&/^\/maps\/[A-Za-z0-9_-]+$/.test(u.pathname))return u.href;return '';}catch{return '';}}
+export function publicDayRoute(date,note){const url=routeURL(note?.sharedRouteUrl);return dates.includes(date)&&url&&url===routeURL(note?.routeUrl)?{date,url}:null;}
+export function dayRouteHTML(date,note,editable=false){const url=routeURL(editable?note?.routeUrl:note?.url);if(!date||!editable&&!url)return '';return `<span class="day-route-actions">${url?`<a class="day-route" href="${esc(url)}" target="_blank" rel="noopener noreferrer">전체 경로 보기 ↗</a>`:''}${editable?`<button type="button" data-dayroute="${esc(date)}">${url?'경로 수정':'전체 경로 등록'}</button>`:''}</span>`;}

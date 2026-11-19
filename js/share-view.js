@@ -1,20 +1,22 @@
+import {routeURL} from './day-route.js';
 import * as sdk from './vendor/firebase.js';
 import {firebaseConfig} from './firebase-config.js';
 import {shareScreen,shareNavigation,views} from './share-layout.js';
 import {dates,sharedDates} from './trip-calendar.js';
 const db=sdk.getFirestore(sdk.initializeApp(firebaseConfig)),status=document.querySelector('#share-status'),content=document.querySelector('#main');
-let unsubscribe,children=[],epoch=0,contentEpoch=0,selected=dates[0],allItems=[],allSummaries=[],dateScroll=0,ready=false;
+let unsubscribe,children=[],epoch=0,contentEpoch=0,selected=dates[0],allItems=[],allSummaries=[],allRoutes=[],dateScroll=0,ready=false;
 const tokenOf=()=>location.hash.slice(1).split('/')[0];
 const viewOf=()=>views.includes(location.hash.split('/')[1])?location.hash.split('/')[1]:'home';
-function render(){document.querySelector('#nav').innerHTML=shareNavigation(tokenOf(),viewOf());document.querySelector('#share-home').href='#'+tokenOf()+'/home';content.innerHTML=ready?shareScreen(viewOf(),allItems,allSummaries,selected):'';const calendar=document.querySelector('#shared-dates');if(calendar)calendar.scrollLeft=dateScroll;}
+function render(){document.querySelector('#nav').innerHTML=shareNavigation(tokenOf(),viewOf());document.querySelector('#share-home').href='#'+tokenOf()+'/home';content.innerHTML=ready?shareScreen(viewOf(),allItems,allSummaries,selected,allRoutes):'';const calendar=document.querySelector('#shared-dates');if(calendar)calendar.scrollLeft=dateScroll;}
 document.querySelector('.skip').onclick=e=>{e.preventDefault();content.focus();};
 content.onclick=e=>{const date=e.target.closest('[data-share-date]'),day=e.target.closest('[data-day]'),shift=e.target.closest('[data-shift]');if(!date&&!day&&!shift)return;dateScroll=document.querySelector('#shared-dates')?.scrollLeft||0;if(date)selected=date.dataset.shareDate;if(day){selected=day.dataset.day;location.hash=tokenOf()+'/itinerary';}if(shift){const calendar=sharedDates(allItems);selected=calendar[Math.min(calendar.length-1,Math.max(0,calendar.indexOf(selected)+Number(shift.dataset.shift)))];}render();};
-function clear(message){dateScroll=document.querySelector('#shared-dates')?.scrollLeft||dateScroll;allItems=[];allSummaries=[];ready=false;render();status.textContent=message;}
+function clear(message){dateScroll=document.querySelector('#shared-dates')?.scrollLeft||dateScroll;allItems=[];allSummaries=[];allRoutes=[];ready=false;render();status.textContent=message;}
 function stop(){epoch++;unsubscribe?.();children.forEach(fn=>fn());children=[];}
 function listen(){stop();const run=epoch;clear('공유 일정을 확인하고 있습니다.');const token=tokenOf();if(!/^[0-9a-f]{64}$/.test(token)){clear('올바른 공유 링크가 아닙니다.');return;}if(!navigator.onLine){clear('인터넷 연결 후 공유 일정을 확인할 수 있습니다.');return;}
  const fail=()=>{stop();clear('공유가 중단되었거나 접근할 수 없습니다. 연결 상태를 확인해 주세요.');};
  unsubscribe=sdk.onSnapshot(sdk.doc(db,'publicTrips',token),{includeMetadataChanges:true},async snap=>{if(run!==epoch)return;const revision=++contentEpoch;children.forEach(fn=>fn());children=[];if(snap.metadata.fromCache||snap.metadata.hasPendingWrites){clear('서버에서 공개 상태를 확인하고 있습니다.');return;}if(!snap.exists()||!snap.data().active){clear('공유가 중단되었거나 사용할 수 없는 링크입니다.');return;}
  clear('최신 공개 일정을 불러오는 중입니다.');const root=snap.data();
+ for(const date of dates)children.push(sdk.onSnapshot(sdk.doc(db,'publicTrips',token,'routes',date),{includeMetadataChanges:true},s=>{if(run!==epoch||revision!==contentEpoch)return;allRoutes=allRoutes.filter(r=>r.date!==date);if(!s.metadata.fromCache&&!s.metadata.hasPendingWrites&&s.exists()&&s.data().date===date&&routeURL(s.data().url))allRoutes.push({date,url:routeURL(s.data().url)});render();},()=>{if(run===epoch&&revision===contentEpoch){allRoutes=allRoutes.filter(r=>r.date!==date);render();}}));
  if(root.version===2){try{const generation=await sdk.getDocFromServer(sdk.doc(db,'publicTrips',token,'generations',root.generation));if(!generation.exists())throw Error('missing generation');const pages=[];const ids=generation.data().pages;
  for(let i=0;i<ids.length;i+=20){const batch=await Promise.all(ids.slice(i,i+20).map(id=>sdk.getDocFromServer(sdk.doc(db,'publicTrips',token,'pages',id))));if(run!==epoch||revision!==contentEpoch)return;for(const p of batch){if(!p.exists())throw Error('missing page');pages.push(...p.data().items);}}
  if(run!==epoch||revision!==contentEpoch)return;if(pages.length!==generation.data().count)throw Error('incomplete generation');const summaries=[];const summaryIds=generation.data().summaries||[];for(let i=0;i<summaryIds.length;i+=20){const docs=await Promise.all(summaryIds.slice(i,i+20).map(id=>sdk.getDocFromServer(sdk.doc(db,'publicTrips',token,'summaries',id))));if(run!==epoch||revision!==contentEpoch)return;for(const p of docs){if(!p.exists())throw Error('missing summary');summaries.push(...p.data().items);}}
