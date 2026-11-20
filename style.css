@@ -290,3 +290,25 @@ nav{background:#fff}
  .statusbar{gap:2px 12px}
  .sync-status-popover{width:min(340px,calc(100vw - 32px))}
 }
+
+/* v23.2: compact checklist header; the progress bar is the only header rule. */
+.section-heading.checklist-heading{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px 12px;border-bottom:0;padding-bottom:4px;align-items:center}
+.checklist-heading .checklist-summary{grid-column:1;grid-row:1;flex-wrap:nowrap;gap:12px}
+.checklist-summary h2{white-space:nowrap}
+.checklist-summary .meta{border-left:0;padding-left:0}
+.checklist-heading .checklist-actions,.checklist-heading .checklist-actions:has(.inline-task-entry:not([hidden])){display:contents}
+.checklist-actions [data-inline-open]{grid-column:2;grid-row:1}
+.checklist-actions>[data-categories]{grid-column:3;grid-row:1}
+.checklist-actions .inline-task-entry{grid-column:1/-1;grid-row:2}
+.checklist-heading+.progress{margin:10px 0 22px}
+.category-symbol{display:none;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4}
+@media(max-width:600px){
+ .section-heading.checklist-heading{gap:4px;align-items:center}
+ .checklist-heading .checklist-summary{gap:8px}
+ .checklist-summary h2{font-size:18px}
+ .checklist-summary .meta{font-size:11px}
+ .checklist-actions [data-inline-open],.checklist-actions>[data-categories]{font-size:12px;padding:10px 6px;min-width:44px}
+ .category-label{display:none}.category-symbol{display:block;margin:auto}
+}
+
+.timeline{min-height:calc(100dvh - var(--date-scroll-offset,110px))}
